@@ -12,7 +12,32 @@ namespace Test_Taste_Console_Application.Domain.Objects
         public ICollection<Moon> Moons { get; set; }
         public float AverageMoonGravity
         {
-            get => 0.0f;
+            get
+            {
+                if (Moons == null || Moons.Count == 0)
+                {
+                    return 0.0f; // or whatever default value we prefer when there are no moons
+                }
+
+                // Calculate the sum of gravities
+                float sum = 0.0f;
+                foreach (var moon in Moons)
+                {
+                    // Calculate gravitational force (gravity) based on MassValue and MassExponent
+                    float gravity = CalculateGravity(moon.MassValue, moon.MassExponent);
+                    sum += gravity;
+                }
+
+                // Calculate the average
+                return sum / Moons.Count;
+            }
+        }
+
+        private float CalculateGravity(float massValue, float massExponent)
+        {
+            // Calculate gravity based on mass value and exponent
+            // We can adjust this calculation based on our specific formula or requirements
+            return massValue * (float)Math.Pow(10, massExponent);
         }
 
         public Planet(PlanetDto planetDto)

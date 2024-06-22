@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
@@ -24,6 +25,8 @@ namespace Test_Taste_Console_Application.Domain.Services
 
         public IEnumerable<Planet> GetAllPlanets()
         {
+            Console.WriteLine("Loading All Planets data..."); // Informing user about loading data progress
+
             var allPlanetsWithTheirMoons = new Collection<Planet>();
 
             var response = _httpClientService.Client
@@ -34,22 +37,36 @@ namespace Test_Taste_Console_Application.Domain.Services
             if (!response.IsSuccessStatusCode)
             {
                 Logger.Instance.Warn($"{LoggerMessage.GetRequestFailed}{response.StatusCode}");
+                Console.WriteLine("Failed to retrieve Planets data."); // Informing user about failure
+
                 return allPlanetsWithTheirMoons;
             }
 
+            Console.WriteLine("Planets Data retrieved successfully."); // Informing user about successful retrieval
+
             var content = response.Content.ReadAsStringAsync().Result;
+
+            Console.WriteLine("Parsing Planets data..."); // Informing user about parsing data progress
 
             //The JSON converter uses DTO's, that can be found in the DataTransferObjects folder, to deserialize the response content.
             var results = JsonConvert.DeserializeObject<JsonResult<PlanetDto>>(content);
 
             //The JSON converter can return a null object. 
-            if (results == null) return allPlanetsWithTheirMoons;
+            if (results == null)
+            {
+                Console.WriteLine("No Planets data found."); // Informing user about no data found
+                return allPlanetsWithTheirMoons;
+            }
+
+            Console.WriteLine("Planets Data parsed successfully."); // Informing user about successful parsing
 
             //If the planet doesn't have any moons, then it isn't added to the collection.
             foreach (var planet in results.Bodies)
             {
-                if(planet.Moons != null)
+                if (planet.Moons != null)
                 {
+                    Console.WriteLine($"Loading moons for planet {planet.Id}..."); // Informing user about loading moons progress
+
                     var newMoonsCollection = new Collection<MoonDto>();
                     foreach (var moon in planet.Moons)
                     {
@@ -61,9 +78,13 @@ namespace Test_Taste_Console_Application.Domain.Services
                     }
                     planet.Moons = newMoonsCollection;
 
+                    Console.WriteLine($"Moons loaded for planet {planet.Id}."); // Informing user about moons loaded
+
                 }
                 allPlanetsWithTheirMoons.Add(new Planet(planet));
             }
+
+            Console.WriteLine("All Planets data loaded successfully."); // Informing user about successful completion
 
             return allPlanetsWithTheirMoons;
         }
